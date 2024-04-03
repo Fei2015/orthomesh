@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            // "program": "${workspaceFolder}/orthomesh",
+            "program": "${workspaceFolder}/testapi",
+            // "program": "${workspaceFolder}/test_so",
+            // "args": ["-vvv", "-o", "example2.svg", "-f", "svg", "-s", "200", "-i", "example2.om"],
+            "args": ["-vvv", "-o", "testapi.svg", "-f", "svg", "-s", "200", "-i", "test.om"],
+            // "args": ["-std=c++11", "-lstdc++fs", "-o", "test", "omesh2d.o", "omesh2d_test.o",],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/home/fei/Software/testapi_omesh2d"
+                }
+            ],            
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // "preLaunchTask":"compile_omesh2d_so",
+            "preLaunchTask":"Build_testapi",
+            // "preLaunchTask":"build_omesh2d_test_so",
+            "miDebuggerPath": "/usr/bin/gdb",
+            // "justMyCode":false,
+            "additionalSOLibSearchPath": "/home/fei/Software/testapi_omesh2d/libOmesh2dLib.so",
+            "sourceFileMap": {"/home/fei/Software/testapi_omesh2d/": "${workspaceFolder}"
+        }
+    ]
+}

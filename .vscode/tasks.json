@@ -1,0 +1,145 @@
+{
+    
+    "options": {
+        "cwd":"${workspaceFolder}/"
+    },
+
+ 
+    "tasks": [
+        {
+            "label":"make",
+            "group":{
+                "kind": "build",
+                "isDefault": true
+            },
+            "command":"make"
+            // "args": [
+                // "-j4" 
+            // ]
+        },
+        {
+            "label":"Build",
+            "dependsOrder": "sequence",
+            "dependsOn":[
+                 "make"
+            ]
+        },
+       {
+            "label":"Build_testapi",
+            "group":{
+                "kind": "build",
+                // "isDefault": true
+            },
+            "dependsOrder": "sequence",
+            "dependsOn":["compile_omesh2d_so"],
+            "command":"g++",
+            "args": [
+                "-MD",
+                "-Wall",
+                "-Os",
+                "-std=gnu++0x",
+                "-march=native",
+                "-ggdb",
+                "-lstdc++fs",
+                "testapi.cc",
+                "-L.",
+                "-lOmesh2dLib",
+                "-o",
+                "testapi"
+            ]
+        },          
+        // ******* for omesh2d_test**********
+        {
+            "label":"compile_omesh2d",
+            "group":{
+                "kind": "build",
+                // "isDefault": true
+            },
+            "command":"gcc",
+            "args": [
+                "-c",
+                "-I/usr/local/include/eigen2/",
+                "/home/fei/Software/testapi_omesh2d/omesh2d" 
+            ]
+        },
+        {
+            "label":"compile_omesh2d_so",
+            "group":{
+                "kind": "build",
+                // "isDefault": true
+            },
+            "command":"g++",
+            "args": [
+                "-shared",
+                "-fPIC",
+                "-g",
+                "-I/usr/local/include/eigen2/",
+                "-o",
+                "/home/fei/Software/testapi_omesh2d/libOmesh2dLib.so",
+                "omesh2d.cc"
+            ]
+        },        
+        {
+            "label":"compile_omesh2d_test",
+            "group":{
+                "kind": "build",
+                // "isDefault": true
+            },
+            "command":"gcc",
+            "args": [
+                "-c",
+                "/home/fei/Software/testapi_omesh2d/omesh2d_test.cc" 
+            ]
+        },       
+        {
+            "label": "build_omesh2d_test",
+            "dependsOrder": "sequence",
+            "dependsOn":[
+                 "compile_omesh2d",
+                //  "compile_omesh2d_test"
+            ],
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++11",
+                "-g",
+                "-lstdc++fs",
+                "/home/fei/Software/testapi_omesh2d/omesh2d_test.cc",
+                "/home/fei/Software/testapi_omesh2d/omesh2d.o",
+                "-o",
+                "/home/fei/Software/testapi_omesh2d/test_test"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+
+        {
+            "label": "build_omesh2d_test_so",
+            "dependsOrder": "sequence",
+            "dependsOn":[
+                 "compile_omesh2d_so"
+            ],
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++11",
+                "-g",
+                "-lstdc++fs",
+                "/home/fei/Software/testapi_omesh2d/omesh2d_test.cc",
+                "-I.",
+                "-L.",
+                "-lOmesh2dLib",
+                "-o",
+                "/home/fei/Software/testapi_omesh2d/test_so"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }        
+    ],
+
+   "version": "2.0.0"
+}
