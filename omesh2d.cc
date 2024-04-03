@@ -1324,22 +1324,36 @@ void Omesh2d::stl_write_delaunay(FILE *f, double scale, bool container)
 				Q.push_back(Vector2f(p.first * OMESH2D_STEP, p.second * OMESH2D_STEP));
 			}
 
-			std::sort(Q.begin(), Q.end(), [&](const Vector2f &A, const Vector2f &B) -> bool
-					  { return atan2(A[1] - C[1], A[0] - C[0]) < atan2(B[1] - C[1], B[0] - C[0]); });
+			const int nbr_Q = Q.size();
+			switch (nbr_Q) {
+				case 3:
+				case 4:
+					std::sort(Q.begin(), Q.end(), [&](const Vector2f &A, const Vector2f &B) -> bool
+							{ return atan2(A[1] - C[1], A[0] - C[0]) < atan2(B[1] - C[1], B[0] - C[0]); });
 
-			for (size_t i = 1; i + 1 < Q.size(); i++)
-			{
-				Vector2f A = Q[0], B = Q[i], C = Q[i + 1];
-				Vector3f N = (B - A).cross(C - A);
-				N.normalize();
+					for (size_t i = 1; i + 1 < Q.size(); i++)
+					{
+						Vector2f A = Q[0], B = Q[i], C = Q[i + 1];
+						// Vector3f N = (B - A).cross(C - A);	// normal vector, yet got problems with the Eigen library
+						Vector3f N = {1.0, 0.0, 0.0};	//	Since the vertex is sorted, the normal vector should be this
+						N.normalize();
+						double _translate_x = coord.major_x + coord.minor_x * OMESH2D_STEP;
+						double _translate_y = coord.major_y + coord.minor_y * OMESH2D_STEP;
+						auto _translation = Vector2f(_translate_x, _translate_y);
+						double _scale = coord.size * OMESH2D_STEP;
+						fprintf(f, "facet normal %f %f %f\n", N[0], N[1], N[2]);
+						fprintf(f, "  outer loop\n");
+						fprintf(f, "    vertex %f %f %f\n", _translation[0] + A[0] * _scale, _translation[1] + A[1] * _scale, 0.0);
+						fprintf(f, "    vertex %f %f %f\n", _translation[0] + B[0] * _scale, _translation[1] + B[1] * _scale, 0.0);
+						fprintf(f, "    vertex %f %f %f\n", _translation[0] + C[0] * _scale, _translation[1] + C[1] * _scale, 0.0);
+						fprintf(f, "  endloop\n");
+						fprintf(f, "endfacet\n");
+					}
+					break;
+				default:
+					fprintf(stderr, "Error: Only triangles and quadrilaterals are supported now for STL output\n");
+					break;
 
-				fprintf(f, "facet normal %f %f %f\n", N[0], N[1], N[2]);
-				fprintf(f, "  outer loop\n");
-				fprintf(f, "    vertex %f %f %f\n", A[0] * scale, A[1] * scale, 0.0);
-				fprintf(f, "    vertex %f %f %f\n", B[0] * scale, B[1] * scale, 0.0);
-				fprintf(f, "    vertex %f %f %f\n", C[0] * scale, C[1] * scale, 0.0);
-				fprintf(f, "  endloop\n");
-				fprintf(f, "endfacet\n");
 			}
 		}
 	}

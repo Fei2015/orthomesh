@@ -532,7 +532,7 @@ static Omesh2d_GJK orthomesh_2d(Lexer &lex, FILE *f_out, orthomes_options_t &opt
 	} 
 	else if (options.format.empty() || options.format == "stl")	// export to .stl file
 	{
-		mesher.stl_write_grid(f_out, options.scale, !options.plain);
+		mesher.stl_write_delaunay(f_out, options.scale, !options.plain);
 		return mesher;
 	}
 	else if (options.format.empty() || options.format == "api"){

@@ -1,4 +1,4 @@
-testapi: testapi.cc /usr/include/stdc-predef.h orthomesh.cc \
+testapi: testapi.cc /usr/include/stdc-predef.h \
  /usr/include/c++/11/iostream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -145,7 +145,7 @@ testapi: testapi.cc /usr/include/stdc-predef.h orthomesh.cc \
  /usr/include/c++/11/bits/locale_facets.tcc \
  /usr/include/c++/11/bits/basic_ios.tcc \
  /usr/include/c++/11/bits/ostream.tcc /usr/include/c++/11/istream \
- /usr/include/c++/11/bits/istream.tcc omesh2d.h \
+ /usr/include/c++/11/bits/istream.tcc orthomesh.cc omesh2d.h \
  /usr/include/c++/11/math.h /usr/include/c++/11/cmath /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \

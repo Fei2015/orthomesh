@@ -55,7 +55,7 @@
                 "kind": "build",
                 // "isDefault": true
             },
-            "command":"gcc",
+            "command":"g++",
             "args": [
                 "-c",
                 "-I/usr/local/include/eigen2/",

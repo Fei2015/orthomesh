@@ -104,7 +104,7 @@ struct Omesh2d
 	static void svg_write_voronoi(FILE *f, const Omesh2d::Geometry &geom);
 	void svg_write_delaunay(FILE *f, const Omesh2d::Coordinate &coord);
 	void svg_write_grid(FILE *f, double scale = 100, bool container = true);
-	void stl_write_grid(FILE *f, double scale = 100, bool container = true);
+	void stl_write_delaunay(FILE *f, double scale = 100, bool container = true);
 	void html_write_celltype(FILE *f, const Omesh2d::CellType &ctype);
 };
 
