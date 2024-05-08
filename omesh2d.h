@@ -60,6 +60,7 @@ struct Omesh2d
 
 	// coloring interface (used by svg writers)
 	virtual std::string getcolor(int32_t major_x, int32_t major_y, std::vector<int32_t> &minor_xy) { return "gray"; };
+	virtual void getintersection(int32_t major_x, int32_t major_y, std::vector<int32_t> &minor_xy, std::vector<std::array<double, 2>> &intersection_coords) {};
 
 	// data structures
 	struct Coordinate;
@@ -106,6 +107,7 @@ struct Omesh2d
 	void svg_write_grid(FILE *f, double scale = 100, bool container = true);
 	void stl_write_delaunay(FILE *f, double scale = 100, bool container = true);
 	void html_write_celltype(FILE *f, const Omesh2d::CellType &ctype);
+	void vertices_write_coordinates(FILE *f);
 };
 
 // This struct describes the boundary conditions for a cell

@@ -9,8 +9,11 @@
             "program": "${workspaceFolder}/testapi",
             // "program": "${workspaceFolder}/test_so",
             // "args": ["-vvv", "-o", "example2.svg", "-f", "svg", "-s", "200", "-i", "example2.om"],
-            "args": ["-vvv", "-o", "testapi.svg", "-f", "svg", "-s", "200", "-i", "test.om"],
+            // "args": ["-vvv", "-o", "testapi.svg", "-f", "svg", "-s", "200", "-i", "test.om"],
             // "args": ["-std=c++11", "-lstdc++fs", "-o", "test", "omesh2d.o", "omesh2d_test.o",],
+            // "args": ["-vvv", "-o", "test_squre.svg", "-f", "svg", "-s", "200", "-i", "test_squre.om"],
+            "args": ["-vvv", "-o", "test_squre_coords.data", "-f", "data", "-s", "200", "-i", "test_squre.om"],
+            // "args": ["-vvv", "-o", "test_squre.stl", "-f", "stl", "-s", "1.0", "-i", "test_squre.om"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [

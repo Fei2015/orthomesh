@@ -1364,6 +1364,85 @@ void Omesh2d::stl_write_delaunay(FILE *f, double scale, bool container)
 	}
 }
 
+void Omesh2d::vertices_write_coordinates(FILE *f )
+{
+	std::vector<std::array<double, 2>> intersection_coords = {};
+	std::set<std::array<double, 2>>  all_coords = {};
+
+	for (auto &it : grid)
+	{
+		auto &coord = it.first;
+
+		// svg_write_delaunay(f, coord);
+
+		Omesh2d::Geometry &geom = geometries.at(grid.at(coord));
+		int shift = OMESH2D_BITS - count_trailing_zeros(coord.size);
+
+		for (const auto &seg : geom.segments)
+		{
+			std::vector<Vector2f> Q;
+			std::vector<int32_t> minor_xy;
+
+			for (auto &p : seg.points)
+			{
+				Q.push_back(Vector2f(p.first * OMESH2D_STEP, p.second * OMESH2D_STEP));
+				minor_xy.push_back((p.first >> shift) + coord.minor_x);
+				minor_xy.push_back((p.second >> shift) + coord.minor_y);
+			}
+
+			const int nbr_Q = Q.size();
+
+			for (size_t i = 0; i + 1 < Q.size(); i++)
+			{
+				double _translate_x = coord.major_x + coord.minor_x * OMESH2D_STEP;
+				double _translate_y = coord.major_y + coord.minor_y * OMESH2D_STEP;
+				auto _translation = Vector2f(_translate_x, _translate_y);
+				double _scale = coord.size * OMESH2D_STEP;
+				all_coords.insert({Q[i][0] * _scale + _translation[0], Q[i][1] * _scale + _translation[1]});
+
+			}
+
+
+			getintersection(coord.major_x, coord.major_y, minor_xy, intersection_coords); 
+			// std::cout<< "Intersection Coords: " << intersection_coords.size() << std::endl;
+
+			// fprintf(f, "<polygon fill='%s' transform='translate(%f, %f) scale(%f, %f)' points='",
+			// 		getcolor(coord.major_x, coord.major_y, minor_xy).c_str(),
+			// 		coord.major_x + coord.minor_x * OMESH2D_STEP,
+			// 		coord.major_y + coord.minor_y * OMESH2D_STEP,
+			// 		coord.size * OMESH2D_STEP, coord.size * OMESH2D_STEP);
+			// for (size_t i = 0; i < Q.size(); i++)
+			// 	fprintf(f, "%s%f,%f", i ? " " : "", Q[i][0], Q[i][1]);
+			// fprintf(f, "'/>\n");
+		}		
+		
+		// fprintf(f, "</g>\n");
+	}	
+	auto intersection_coords_unique = std::set<std::array<double, 2>> (intersection_coords.begin(), intersection_coords.end());	// remove duplicates
+
+	std::cout<< "Intersection Coords: " << intersection_coords.size() << std::endl;
+	std::cout<< "Intersection Coords Unique: " << intersection_coords_unique.size() << std::endl;
+	std::cout<< "All Coords: " << all_coords.size() << std::endl;
+	all_coords.insert(intersection_coords_unique.begin(), intersection_coords_unique.end());
+
+	// now write all the coordinates into file
+	int i_vert = 1;
+	for (auto &coord : all_coords)
+	{
+		fprintf(f, "%i %.17g %.17g\n", i_vert, coord[0], coord[1]);
+		i_vert++;
+	}
+
+	// for (const auto &seg : geom.segments)
+	// {
+	// 	for (const auto &p : seg.points)
+	// 	{
+	// 		fprintf(f, "%f %f %f\n", coord.major_x + coord.minor_x * OMESH2D_STEP + p.first * coord.size * OMESH2D_STEP,
+	// 				coord.major_y + coord.minor_y * OMESH2D_STEP + p.second * coord.size * OMESH2D_STEP, 0.0);
+	// 	}
+	// }
+}
+
 void Omesh2d::html_write_celltype(FILE *f, const Omesh2d::CellType &ctype)
 {
 	fprintf(f, "<tr><td valign='top'>\n");

@@ -284,15 +284,278 @@ struct Omesh2d_GJK : Omesh2d
 			for (auto gjk_ptr : g.gjk_supports) {
 				GJK_MinkowskiDifference<double> gjk(&gjk_hull, gjk_ptr);
 				if (gjk.gjk_analyze())
+				{
+					// double center_x, center_y;
+					double p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y;
+					double dx12, dy12, dx34, dy34, denom, t, u;
+					double intersection_x, intersection_y;
+					int cell_verts_nbr;
+					int k;
+					// switch (gjk_points.size())
+					// {
+					// case 6:	// triangle
+					// 	center_x = (gjk_points[0] + gjk_points[2] + gjk_points[4]) / 3;
+					// 	center_y = (gjk_points[1] + gjk_points[3] + gjk_points[5]) / 3;
+					// 	std::cout<< "( center_x, center_y ):   " << center_x <<", "<< center_y << std::endl;	// debug
+					// 	break;
+					// case 8:	//quad
+					// 	center_x = (gjk_points[0] + gjk_points[2] + gjk_points[4] + gjk_points[6]) / 4;
+					// 	center_y = (gjk_points[1] + gjk_points[3] + gjk_points[5] + gjk_points[7]) / 4;
+					// 	std::cout<< "( center_x, center_y ):   " << center_x <<", "<< center_y << std::endl;	// debug
+					// 	break;
+					// default:
+					// 	break;
+					// }	
+					
+					// cell do intersect with the geometry, now calculate the intersection location
+					// loop over the "gjk_data" i.e. the line segments of the geometry
+					for (int i = 0; i < g.gjk_data.size(); i += 1)
+					{
+						// std::cout<< " line seg start: " << g.gjk_data[i][0][0] <<", "<< g.gjk_data[i][0][1] 
+						// << ", line seg end: "<< g.gjk_data[i][0][2] <<", "<< g.gjk_data[i][0][3] << std::endl;	// debug
+						// loop over each line segment of the cell
+						cell_verts_nbr = gjk_points.size();
+						
+					 	// if (cell_verts_nbr == 6)	// skip for triangle cell case
+						// 	continue;
+
+						if (i == 1)	// stopper for debug 
+							{
+								int stopper = 1;
+							};
+
+						for (int j = 0; j < gjk_points.size() - 1; j += 2)
+						{
+							// std::cout<< " cell seg start: " << gjk_points[j] <<", "<< gjk_points[j+1] 
+							// << ", cell seg end: "<< gjk_points[j+2] <<", "<< gjk_points[j+3] << std::endl;	// debug
+							
+							// check if the line segment of the geometry intersects with the line segment of the cell
+							// if yes, then calculate the intersection point
+							// if no, then continue to the next line segment of the geometry
+							// if no intersection point is found, then return the default color
+							// if intersection point is
+							// the vertex order of a quad cell is:
+							// p1--------------------p3
+							// |					 |
+							// |					 |
+							// |					 |
+							// p0--------------------p2
+
+							switch (j)	// determine the next vertex index without sorting the vertices
+							{
+								case 0:
+								{	k = 2;
+									break;}
+								case 2:
+								{	k = 6;
+									break;}
+								case 4:
+								{	k = 0;
+									break;}
+								case 6:
+								{	k = 4;
+									break;}
+								default:
+									break;
+							}
+							p1_x = g.gjk_data[i][0][0];
+							p1_y = g.gjk_data[i][0][1];
+							p2_x = g.gjk_data[i][0][2];
+							p2_y = g.gjk_data[i][0][3];
+							p3_x = gjk_points[j];
+							p3_y = gjk_points[j+1];
+							p4_x = gjk_points[k];
+							p4_y = gjk_points[k+1];
+
+							// Calculate differences
+							dx12 = p2_x - p1_x;
+							dy12 = p2_y - p1_y;
+							dx34 = p4_x - p3_x;
+							dy34 = p4_y - p3_y;
+
+							// Calculate denominator
+							denom = dx12 * dy34 - dy12 * dx34;
+
+							// Parallel lines (denom=0) or coincident lines (numerators=0)
+							if (denom == 0)
+								continue;
+
+							t = ((p3_x - p1_x) * dy34 - (p3_y - p1_y) * dx34) / denom;
+							u = ((p3_x - p1_x) * dy12 - (p3_y - p1_y) * dx12) / denom;
+
+							// Check if intersection is within the line segments
+							if (t < 0 || t > 1 || u < 0 || u > 1)
+								continue;
+
+							// Calculate intersection point
+							intersection_x = p1_x + t * dx12;
+							intersection_y = p1_y + t * dy12;
+							// std::cout<< "Intersection point: " << intersection_x <<", "<< intersection_y << std::endl;	// debug
+							std::cout<< "Intersection point: " << intersection_x <<", "<< intersection_y << ", i = "<< i << " , j = "<< j<< " , k = "<< k <<std::endl;	// debug
+							// std::cout<< "Color: " << g.color << std::endl;	// debug
+						}
+					}
+
+
 					return g.color;
+				}
 			}
 		}
 
 		return default_color;
 	}
-};
 
-static Omesh2d_GJK orthomesh_2d(Lexer &lex, FILE *f_out, orthomes_options_t &options) // void return type by default
+	// get all the intersection point of the geometry and the cell
+	// it returns a vector stores coordinates in the form: {p0_x, p0_y, p0_z}, {p1_x, p1_y, p1_z}, ...
+	virtual void getintersection(int32_t major_x, int32_t major_y, std::vector<int32_t> &minor_xy, std::vector<std::array<double, 2>> &intersection_coords)
+	{
+	// std::vector<std::array<double, 3>> intersection_coords = {};
+	// std::string default_color = "gray";
+
+		std::vector<double> gjk_points;
+		for (size_t i = 0; i < minor_xy.size(); i += 2) {
+			gjk_points.push_back(major_x + minor_xy[i+0] * OMESH2D_STEP);
+			gjk_points.push_back(major_y + minor_xy[i+1] * OMESH2D_STEP);
+		}
+
+		GJK_Hull2D<double> gjk_hull(&gjk_points[0], gjk_points.size());
+
+		for (auto &g : geometries)
+		{
+			// if (g.color.empty())
+			// 	continue;
+			if (g.color == "darkcyan")	//	skip color marker for "triangles"
+				continue;
+			// if (g.default_geometry)
+			// 	default_color = g.color;
+
+			for (auto gjk_ptr : g.gjk_supports) {
+				GJK_MinkowskiDifference<double> gjk(&gjk_hull, gjk_ptr);
+				if (gjk.gjk_analyze())
+				{
+					// double center_x, center_y;
+					double p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y;
+					double dx12, dy12, dx34, dy34, denom, t, u;
+					double intersection_x, intersection_y;
+					int cell_verts_nbr;
+					int k;
+					// switch (gjk_points.size())
+					// {
+					// case 6:	// triangle
+					// 	center_x = (gjk_points[0] + gjk_points[2] + gjk_points[4]) / 3;
+					// 	center_y = (gjk_points[1] + gjk_points[3] + gjk_points[5]) / 3;
+					// 	std::cout<< "( center_x, center_y ):   " << center_x <<", "<< center_y << std::endl;	// debug
+					// 	break;
+					// case 8:	//quad
+					// 	center_x = (gjk_points[0] + gjk_points[2] + gjk_points[4] + gjk_points[6]) / 4;
+					// 	center_y = (gjk_points[1] + gjk_points[3] + gjk_points[5] + gjk_points[7]) / 4;
+					// 	std::cout<< "( center_x, center_y ):   " << center_x <<", "<< center_y << std::endl;	// debug
+					// 	break;
+					// default:
+					// 	break;
+					// }	
+					
+					// cell do intersect with the geometry, now calculate the intersection location
+					// loop over the "gjk_data" i.e. the line segments of the geometry
+					for (int i = 0; i < g.gjk_data.size(); i += 1)
+					{
+						// std::cout<< " line seg start: " << g.gjk_data[i][0][0] <<", "<< g.gjk_data[i][0][1] 
+						// << ", line seg end: "<< g.gjk_data[i][0][2] <<", "<< g.gjk_data[i][0][3] << std::endl;	// debug
+						// loop over each line segment of the cell
+						cell_verts_nbr = gjk_points.size();
+						
+					 	// if (cell_verts_nbr == 6)	// skip for triangle cell case
+						// 	continue;
+
+						if (i == 1)	// stopper for debug 
+							{
+								int stopper = 1;
+							};
+
+						for (int j = 0; j < gjk_points.size() - 1; j += 2)
+						{
+							// std::cout<< " cell seg start: " << gjk_points[j] <<", "<< gjk_points[j+1] 
+							// << ", cell seg end: "<< gjk_points[j+2] <<", "<< gjk_points[j+3] << std::endl;	// debug
+							
+							// check if the line segment of the geometry intersects with the line segment of the cell
+							// if yes, then calculate the intersection point
+							// if no, then continue to the next line segment of the geometry
+							// if no intersection point is found, then return the default color
+							// if intersection point is
+							// the vertex order of a quad cell is:
+							// p1--------------------p3
+							// |					 |
+							// |					 |
+							// |					 |
+							// p0--------------------p2
+
+							switch (j)	// determine the next vertex index without sorting the vertices
+							{
+								case 0:
+								{	k = 2;
+									break;}
+								case 2:
+								{	k = 6;
+									break;}
+								case 4:
+								{	k = 0;
+									break;}
+								case 6:
+								{	k = 4;
+									break;}
+								default:
+									break;
+							}
+							p1_x = g.gjk_data[i][0][0];
+							p1_y = g.gjk_data[i][0][1];
+							p2_x = g.gjk_data[i][0][2];
+							p2_y = g.gjk_data[i][0][3];
+							p3_x = gjk_points[j];
+							p3_y = gjk_points[j+1];
+							p4_x = gjk_points[k];
+							p4_y = gjk_points[k+1];
+
+							// Calculate differences
+							dx12 = p2_x - p1_x;
+							dy12 = p2_y - p1_y;
+							dx34 = p4_x - p3_x;
+							dy34 = p4_y - p3_y;
+
+							// Calculate denominator
+							denom = dx12 * dy34 - dy12 * dx34;
+
+							// Parallel lines (denom=0) or coincident lines (numerators=0)
+							if (denom == 0)
+								continue;
+
+							t = ((p3_x - p1_x) * dy34 - (p3_y - p1_y) * dx34) / denom;
+							u = ((p3_x - p1_x) * dy12 - (p3_y - p1_y) * dx12) / denom;
+
+							// Check if intersection is within the line segments
+							if (t < 0 || t > 1 || u < 0 || u > 1)
+								continue;
+
+							// Calculate intersection point
+							intersection_x = p1_x + t * dx12;
+							intersection_y = p1_y + t * dy12;
+							// std::cout<< "Intersection point: " << intersection_x <<", "<< intersection_y << std::endl;	// debug
+							std::cout<< "Intersection point: " << intersection_x <<", "<< intersection_y << ", i = "<< i << " , j = "<< j<< " , k = "<< k <<std::endl;	// debug
+							// std::cout<< "Color: " << g.color << std::endl;	// debug
+							intersection_coords.push_back({intersection_x, intersection_y});	
+						}
+					}
+
+					// return intersection_coords; // not needed
+				}
+			}
+		}
+		// return intersection_coords;	// not needed
+				
+	}	// end of getintersection
+
+};	// end of class Omesh2d_GJK
+
+Omesh2d_GJK orthomesh_2d(Lexer &lex, FILE *f_out, orthomes_options_t &options) // void return type by default
 {
 	std::string tok;
 
@@ -535,6 +798,10 @@ static Omesh2d_GJK orthomesh_2d(Lexer &lex, FILE *f_out, orthomes_options_t &opt
 		mesher.stl_write_delaunay(f_out, options.scale, !options.plain);
 		return mesher;
 	}
+	else if (options.format.empty() || options.format == "data") {
+		mesher.vertices_write_coordinates(f_out);
+		return mesher;
+	}
 	else if (options.format.empty() || options.format == "api"){
 		return mesher;
 	}
@@ -550,7 +817,7 @@ static Omesh2d_GJK orthomesh_2d(Lexer &lex, FILE *f_out, orthomes_options_t &opt
  *                                 main                                  *
  *************************************************************************/
 
-const Omesh2d_GJK orthomesh_main(int argc, char **argv)	// int return type by default
+Omesh2d_GJK orthomesh_main(int argc, char **argv)	// int return type by default
 {
 	orthomes_options_t options;
 	FILE *f_out = stdout;
@@ -615,8 +882,10 @@ print_help:
 
 	if (initial_token == "orthomesh_2d"){
 		auto mesh_output = orthomesh_2d(lex, f_out, options);
+		std::cout<< "Mesh output grid size: " << std::endl;	// debug	
 		std::cout<< mesh_output.grid_w << " " << mesh_output.grid_h << std::endl;
-		return std::move(mesh_output);
+		// return std::move(mesh_output);
+		return mesh_output;
 	}
 	else
 		lex.syntax_error(initial_token, "'orthomesh_2d'");

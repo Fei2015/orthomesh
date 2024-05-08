@@ -36,7 +36,7 @@
             "args": [
                 "-MD",
                 "-Wall",
-                "-Os",
+                "-O0",  // "-Os"
                 "-std=gnu++0x",
                 "-march=native",
                 "-ggdb",
